@@ -1,7 +1,8 @@
 const express = require('express');
 const client = require('prom-client');
 const logger = require('./logging');
-require('./tracing'); // Ensure tracing is initialized
+const { trace } = require('@opentelemetry/api');
+require('./tracing'); 
 
 const app = express();
 const collectDefaultMetrics = client.collectDefaultMetrics;
@@ -24,6 +25,17 @@ app.use((req, res, next) => {
   next();
 });
 
+
+// TO test tracing
+app.get('/custom', (req, res) => {
+  const span = trace.getTracer('my-custom-tracer').startSpan('custom-operation');
+  setTimeout(() => {
+    span.end();  // Manually ending the trace
+    res.send('Traced custom route!');
+  }, 200);
+});
+
+
 //test endpoint to generate logs/metrics/traces
 app.get('/test', (req, res) => {
   logger.info('Test endpoint hit');
@@ -36,4 +48,4 @@ app.get('/metrics', async (req, res) => {
 });
 
 
-app.listen(PORT, () => logger.info('Server running on port 3000'));
+app.listen(3000, () => logger.info('Server running on port 3000'));
