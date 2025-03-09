@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  loki:
+    image: grafana/loki
+    container_name: loki
+    volumes:
+      - ./loki-config.yaml:/etc/loki/config.yml
+    ports:
+      - "3100:3100"
+    restart: unless-stopped
+
+  promtail:  #pushes logs to loki
+    image: grafana/promtail
+    container_name: promtail
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+      - /var/log:/var/log
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  tempo:
+    image: grafana/tempo
+    container_name: tempo
+    command: --config.file=/etc/tempo/config.yaml  
+    volumes:
+      - ./tempo-config.yaml:/etc/tempo/config.yaml  
+      - ./tempo-data:/tmp/tempo
+    ports:
+      - "4318:4318" 
+      - "4317:4317" 
+      - "3200:3200"
+    restart: unless-stopped
+    
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+
+volumes:
+  tempo-data:
