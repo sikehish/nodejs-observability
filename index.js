@@ -1,8 +1,12 @@
+require('./tracing'); //should be placed before setting up express as otel instrumentation works by monkey-patching Express internals. 
 const express = require('express');
 const client = require('prom-client');
 const logger = require('./logging');
 const { trace } = require('@opentelemetry/api');
-require('./tracing'); 
+const { diag, DiagConsoleLogger, DiagLogLevel } = require('@opentelemetry/api');
+
+diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ALL);
+
 
 const app = express();
 const collectDefaultMetrics = client.collectDefaultMetrics;

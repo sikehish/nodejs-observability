@@ -3,6 +3,7 @@ const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http')
 const { BatchSpanProcessor } = require('@opentelemetry/sdk-trace-base');
 const { registerInstrumentations } = require('@opentelemetry/instrumentation');
 const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express');
+const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http');
 const { Resource } = require('@opentelemetry/resources');
 const { ATTR_SERVICE_NAME } = require('@opentelemetry/semantic-conventions');
 
@@ -16,5 +17,5 @@ const provider = new NodeTracerProvider({
 provider.register();
 
 registerInstrumentations({
-  instrumentations: [new ExpressInstrumentation()],
+  instrumentations: [new HttpInstrumentation(),new ExpressInstrumentation()], //ExpressInstr wont work if HttpInstr isnt added
 });
